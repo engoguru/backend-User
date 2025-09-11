@@ -5,6 +5,7 @@ import connectDB from './db/connectDB.js';
 import cors from 'cors';
 const PORT = process.env.PORT || 5001;
 import userRoutes from "./routes/userRoutes.js"
+import contactRoutes from "./routes/contactRoutes.js"
 // import { notFound, errorHandler } from '@your-scope/common/src/errors.js';
 
 const app = express();
@@ -16,6 +17,7 @@ app.use(cors());
 
 app.get('/userhealth', (_,res)=>res.json({ok:true, service:'user-service'}));
 app.use('/account', userRoutes);
+app.use('/contact',contactRoutes);
 // app.use(notFound); app.use(errorHandler);
 
 // await mongoose.connect(process.env.MONGO_URI || 'mongodb://mongo:27017/users');
