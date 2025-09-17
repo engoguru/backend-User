@@ -3,15 +3,16 @@ import ContactModel from '../models/contactModel.js';
 // Create a new contact
 const createContact = async (req, res) => {
   try {
+   
     if (!req.body) {
       return res.status(400).json({ message: 'Please provide all required fields' });
     }
-    const { name, phone, email, subject, message } = req.body;
+    const { name, phone, email, subject, message } = req.body.data;
     if (!name || !phone || !email || !subject || !message) {
       return res.status(400).json({ message: 'Please provide all required fields' });
     }
 
-    const contact = new ContactModel(req.body);
+    const contact = new ContactModel(req.body.data);
     const savedContact = await contact.save();
     return res.status(201).json(savedContact);
   } catch (err) {
@@ -46,7 +47,6 @@ const getAllContacts = async (req, res) => {
     return res.status(500).json({ message: err.message });
   }
 };
-
 
 // Get contact by ID
 const getContactById = async (req, res) => {

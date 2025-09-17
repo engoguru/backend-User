@@ -7,12 +7,18 @@ const PORT = process.env.PORT || 5001;
 import userRoutes from "./routes/userRoutes.js"
 import contactRoutes from "./routes/contactRoutes.js"
 // import { notFound, errorHandler } from '@your-scope/common/src/errors.js';
+import cookieParser from 'cookie-parser';
+
 
 const app = express();
 
 //  db connect
 connectDB()
-app.use(cors());
+app.use(cors({
+  origin: 'http://localhost:5173',
+  credentials: true
+}));
+app.use(cookieParser());
  app.use(express.json());
 
 app.get('/userhealth', (_,res)=>res.json({ok:true, service:'user-service'}));

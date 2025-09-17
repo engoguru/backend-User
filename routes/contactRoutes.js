@@ -1,6 +1,6 @@
-import contactController from '../controllers/contactController';
+import contactController from '../controllers/contactController.js';
 
-const express = require('express');
+import express from 'express';
 const contactRouter = express.Router();
 
 contactRouter.post('/', contactController.createContact);
