@@ -510,22 +510,57 @@ const newPassword = async (req, res) => {
 };
 
 
-const userUpdate=async(req,res)=>{
+const UpdateAddresses = async (req, res) => {
   try {
-    const id=req.params;
-    if(!isValidObjectId(id)){
-      return res.status(400).json({
-        message:"Invalid id"
-      })
+    const userId = req?.user?.id;
+    const { newAddress, from, to } = req.body.data;
+
+    console.log(" Request Body:", req.body);
+
+    const user = await userModel.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
     }
-  const{}=req.body;
+
+    let addresses = user.address || [];
+    console.log("Before update:", addresses);
+
+    //  Add new address at position 0
+    if (newAddress) {
+      console.log("Adding new address:", newAddress);
+      addresses.unshift(newAddress);
+    }
+
+    //  Reorder if needed
+    if (
+      typeof from === "number" &&
+      typeof to === "number" &&
+      from >= 0 &&
+      from < addresses.length &&
+      to >= 0 &&
+      to < addresses.length
+    ) {
+      const [movedItem] = addresses.splice(from, 1);
+      addresses.splice(to, 0, movedItem);
+      console.log(`Moved address from index ${from} to ${to}`);
+    }
+
+    user.address = addresses;
+    user.markModified("address"); // Force save
+    await user.save();
+
+    console.log("Updated addresses:", user.address);
+
+    res.status(200).json({
+      message: "Address list updated successfully",
+      address: user.address,
+    });
   } catch (error) {
-    console.log(error);
-    return res.status(500).json({
-      mmessage:"Internal server error !"
-    })
+    console.error(" Error updating addresses:", error);
+    res.status(500).json({ message: "Internal Server Error!" });
   }
-}
+};
+
 
 export default {
   userRegister,
@@ -534,5 +569,6 @@ export default {
   GetOne,
   GetAll,
   forgetPassword,
-  newPassword
+  newPassword,
+  UpdateAddresses
 };
