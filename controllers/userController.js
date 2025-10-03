@@ -603,7 +603,7 @@ const UpdateAddresses = async (req, res) => {
     }
 
     let addresses = user.address || [];
-    console.log("Before update:", addresses);
+  
 
     //  Add new address at position 0
     if (newAddress) {
@@ -628,8 +628,6 @@ const UpdateAddresses = async (req, res) => {
     user.address = addresses;
     user.markModified("address"); // Force save
     await user.save();
-
-    console.log("Updated addresses:", user.address);
 
     res.status(200).json({
       message: "Address list updated successfully",

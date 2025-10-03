@@ -86,7 +86,19 @@ const userSchema = new mongoose.Schema({
     enum: ['Male', 'Female', 'NA'],
   },
 
-  address: [String],
+  // address: [String],
+   address: [{
+    name: { type: String },
+    phone: { type: String },
+    address_line1: { type: String },
+    address_line2: { type: String },
+    city: { type: String },
+    state: { type: String },
+    country: { type: String, default: 'India' },
+    pincode: { type: String },
+    address_type: { type: String, enum: ['home', 'office', 'other'], default: 'home' },
+    is_default: { type: Boolean, default: false }
+  }],
   password: {
     type: String,
     required: true,

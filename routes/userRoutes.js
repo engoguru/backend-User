@@ -20,18 +20,29 @@ routes.post("/forget-password",userController.forgetPassword);
 routes.post("/setPassword",userController.newPassword)
 
 
-routes.get("/me", authenticate, async(req, res) => {
-
-  const id=req.user.id;
-  if(!id && !isValidObjectId(id)){
-    return res.status(401).json({message:"Unauthorized"})
+routes.get("/me", authenticate, async (req, res) => {
+  const id = req.user.id;
+  if (!id || !isValidObjectId(id)) {
+    return res.status(401).json({ message: "Unauthorized" });
   }
-  const userData=await userModel.findOne({_id:id})
+
+  const userData = await userModel.findOne({ _id: id }).lean();  // lean returns plain JS object
+
+  if (!userData) {
+    return res.status(404).json({ message: "User not found" });
+  }
+
+  // Remove _id from each address object
+  if (userData.address && Array.isArray(userData.address)) {
+    userData.address = userData.address.map(({ _id, ...rest }) => rest);
+  }
+
   return res.status(200).json({
     message: "User authenticated",
-    user: userData  
+    user: userData,
   });
 });
+
 
 
 routes.put("/updateUserAddress",authenticate,userController.UpdateAddresses)
