@@ -45,6 +45,24 @@ routes.get("/me", authenticate, async (req, res) => {
 
 
 
+routes.get("/out", async (req, res) => {
+  try {
+    // Clear the cookie named 'token' (or whatever your cookie name is)
+    res.clearCookie("token", {
+      // httpOnly: true,
+      // secure: true, // use true if your app is served over HTTPS
+      // sameSite: "Strict", // or "Lax" or "None" depending on your setup
+    });
+
+    return res.status(200).json({ message: "Logged out successfully" });
+  } catch (error) {
+    console.error("Logout error:", error);
+    return res.status(500).json({ message: "Server error during logout" });
+  }
+});
+
+
+
 routes.put("/updateUserAddress",authenticate,userController.UpdateAddresses)
 
 
