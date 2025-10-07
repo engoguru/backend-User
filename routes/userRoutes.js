@@ -6,19 +6,17 @@ import userModel from "../models/userModels.js";
 
 const routes = Router();
 
+routes.post("/register", userController.userRegister);
+routes.post("/userLogin", userController.userLogin);
+routes.post("/admin/login", userController.adminLogin);
+routes.post("/userOtpVerify", userController.userOtpVerify);
 
-routes.post('/register',userController.userRegister)
-routes.post('/userLogin', userController.userLogin);
-routes.post('/admin/login', userController.adminLogin);
-routes.post('/userOtpVerify', userController.userOtpVerify);
+routes.get("/GetOne/:id", userController.GetOne);
+routes.get("/GetAll", userController.GetAll);
+routes.get("/stats", userController.getStats);
 
-routes.get('/GetOne/:id',userController.GetOne);
-routes.get('/GetAll',userController.GetAll);
-
-
-routes.post("/forget-password",userController.forgetPassword);
-routes.post("/setPassword",userController.newPassword)
-
+routes.post("/forget-password", userController.forgetPassword);
+routes.post("/setPassword", userController.newPassword);
 
 routes.get("/me", authenticate, async (req, res) => {
   const id = req.user.id;
@@ -26,7 +24,7 @@ routes.get("/me", authenticate, async (req, res) => {
     return res.status(401).json({ message: "Unauthorized" });
   }
 
-  const userData = await userModel.findOne({ _id: id }).lean();  // lean returns plain JS object
+  const userData = await userModel.findOne({ _id: id }).lean(); // lean returns plain JS object
 
   if (!userData) {
     return res.status(404).json({ message: "User not found" });
@@ -43,17 +41,6 @@ routes.get("/me", authenticate, async (req, res) => {
   });
 });
 
-
-
-routes.put("/updateUserAddress",authenticate,userController.UpdateAddresses)
-
-
-
-
-
-
-
-
-
+routes.put("/updateUserAddress", authenticate, userController.UpdateAddresses);
 
 export default routes;
