@@ -8,7 +8,6 @@ const routes = Router();
 
 routes.post("/register", userController.userRegister);
 routes.post("/userLogin", userController.userLogin);
-routes.post("/admin/login", userController.adminLogin);
 routes.post("/userOtpVerify", userController.userOtpVerify);
 
 routes.get("/GetOne/:id", userController.GetOne);

@@ -193,7 +193,7 @@ const userRegister = async (req, res) => {
 
 const userLogin = async (req, res) => {
   try {
-    const { email, whatsApp_Number, password } = req.body.data;
+    const { email, whatsApp_Number, password, isAdminLogin } = req.body.data;
     // console.log(req.body.data)
     // Find user by email or WhatsApp number
     let user = null;
@@ -215,6 +215,12 @@ const userLogin = async (req, res) => {
         .json({ message: "Please verify your email or whatsAPp number" });
     }
 
+    // If this is an admin login attempt, check the user's role
+    if (isAdminLogin && user.role !== "Admin") {
+      return res
+        .status(403)
+        .json({ message: "Access Denied. You are not an admin." });
+    }
     // Compare passwords (FIXED)
     const isMatch = await bcrypt.compare(password, user.password);
     // console.log(isMatch,"jk")
@@ -253,81 +259,14 @@ const userLogin = async (req, res) => {
       user: {
         id: user._id,
         email: user.email,
+        name: user.name,
         whatsApp_Number: user.whatsApp_Number,
         role: user.role,
-        token, // Optional to include if you're already setting it in cookies
       },
+      token,
     });
   } catch (err) {
     console.error("Login Error:", err);
-    return res.status(500).json({ message: "Internal Server Error" });
-  }
-};
-
-const adminLogin = async (req, res) => {
-  try {
-    const { email, password } = req.body;
-
-    if (!email || !password) {
-      return res
-        .status(400)
-        .json({ message: "Email and password are required." });
-    }
-
-    // Find user by email
-    const user = await userModel.findOne({ email });
-
-    // User not found
-    if (!user) {
-      return res.status(401).json({ message: "Invalid credentials." });
-    }
-
-    // IMPORTANT: Check if the user has the 'Admin' role
-    if (user.role !== "Admin") {
-      return res.status(403).json({ message: "Access denied. Not an admin." });
-    }
-
-    // User not verified (optional, but good practice)
-    if (user.isVerified === false) {
-      return res
-        .status(401)
-        .json({ message: "Please verify your account first." });
-    }
-
-    // Compare passwords
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-      return res.status(401).json({ message: "Invalid credentials." });
-    }
-
-    // Update last login time
-    user.lastlogin = new Date();
-    await user.save();
-
-    // Prepare JWT payload
-    const jwtPayload = {
-      id: user._id,
-      role: user.role,
-      email: user.email,
-      name: user.name,
-    };
-
-    // Generate token
-    const token = jwt.sign(jwtPayload, process.env.JWT_SECRET, {
-      expiresIn: "1d", // Admin sessions can be shorter
-      algorithm: "HS256",
-    });
-
-    // Set token in an HTTP-Only cookie for security
-    jwtToken(res, token);
-
-    // Return response
-    return res.status(200).json({
-      message: "Admin login successful.",
-      token, // Send token for frontend to store
-    });
-  } catch (err) {
-    console.error("Admin Login Error:", err);
     return res.status(500).json({ message: "Internal Server Error" });
   }
 };
@@ -699,7 +638,6 @@ const UpdateAddresses = async (req, res) => {
 export default {
   userRegister,
   userLogin,
-  adminLogin,
   userOtpVerify,
   GetOne,
   GetAll,
