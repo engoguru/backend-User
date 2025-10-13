@@ -61,6 +61,8 @@ routes.get("/out", async (req, res) => {
 
 
 routes.put("/updateUserAddress",authenticate,userController.UpdateAddresses)
+routes.put("/updateProfile", authenticate, userController.updateUserProfile);
+
 
 
 
