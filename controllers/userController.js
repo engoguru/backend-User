@@ -590,9 +590,9 @@ const newPassword = async (req, res) => {
 const UpdateAddresses = async (req, res) => {
   try {
     const userId = req?.user?.id;
-    const { newAddress, from, to } = req.body.data;
+    const { newAddress, from, to, deleteIndex, editIndex, editedAddress } = req.body.data;
 
-    console.log(" Request Body:", req.body);
+    // console.log(" Request Body:", req.body);
 
     const user = await userModel.findById(userId);
     if (!user) {
@@ -601,13 +601,23 @@ const UpdateAddresses = async (req, res) => {
 
     let addresses = user.address || [];
 
-    //  Add new address at position 0
-    if (newAddress) {
-      console.log("Adding new address:", newAddress);
+    // Handle Delete
+    if (typeof deleteIndex === "number" && deleteIndex >= 0 && deleteIndex < addresses.length) {
+      addresses.splice(deleteIndex, 1);
+      // console.log(`Deleted address at index ${deleteIndex}`);
+    }
+    // Handle Edit
+    else if (typeof editIndex === "number" && editedAddress && editIndex >= 0 && editIndex < addresses.length) {
+      addresses[editIndex] = editedAddress;
+      // console.log(`Edited address at index ${editIndex}`);
+    }
+    // Handle Add new address at position 0
+    else if (newAddress) {
+      // console.log("Adding new address:", newAddress);
       addresses.unshift(newAddress);
     }
 
-    //  Reorder if needed
+    // Handle Reorder if needed
     if (
       typeof from === "number" &&
       typeof to === "number" &&
@@ -618,7 +628,7 @@ const UpdateAddresses = async (req, res) => {
     ) {
       const [movedItem] = addresses.splice(from, 1);
       addresses.splice(to, 0, movedItem);
-      console.log(`Moved address from index ${from} to ${to}`);
+      // console.log(`Moved address from index ${from} to ${to}`);
     }
 
     user.address = addresses;
@@ -635,6 +645,47 @@ const UpdateAddresses = async (req, res) => {
   }
 };
 
+const updateUserProfileSchema = Joi.object({
+  name: Joi.string().min(2).max(50).optional(),
+  gender: Joi.string().valid("Male", "Female", "Other", "NA").optional(),
+  contactNumber: Joi.string().pattern(/^\+?[0-9]{7,15}$/).allow('').optional(),
+});
+
+const updateUserProfile = async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    // Validate request body
+    const { error, value } = updateUserProfileSchema.validate(req.body.data);
+    if (error) {
+      return res.status(400).json({ message: error.details[0].message });
+    }
+
+    // Find user
+    const user = await userModel.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Update fields if they are provided in the request
+    if (value.name) user.name = value.name;
+    if (value.gender) user.gender = value.gender;
+    if (value.hasOwnProperty('contactNumber')) user.contactNumber = value.contactNumber;
+
+    // Save the updated user
+    const updatedUser = await user.save();
+
+    // Respond with updated user data (excluding sensitive info)
+    res.status(200).json({
+      message: "Profile updated successfully",
+      user: updatedUser,
+    });
+  } catch (error) {
+    console.error("Error updating user profile:", error);
+    res.status(500).json({ message: "Internal Server Error!" });
+  }
+};
+
 export default {
   userRegister,
   userLogin,
@@ -644,5 +695,6 @@ export default {
   forgetPassword,
   newPassword,
   UpdateAddresses,
+  updateUserProfile,
   getStats,
 };
