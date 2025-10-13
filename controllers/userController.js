@@ -387,13 +387,59 @@ const GetOne = async (req, res) => {
   }
 };
 
+// const GetAll = async (req, res) => {
+//   try {
+//     console.log( req.query,"ghesrhh")
+//     const page = parseInt(req.query.page) || 1;
+//     const limit = parseInt(req.query.limit) || 10;
+//     const sortBy = req.query.sort || "latest"; // Default to 'latest'
+//     const skip = (page - 1) * limit;
+
+//     const query=req.quey.search
+
+//     let sortOption = {};
+//     switch (sortBy) {
+//       case "a-z":
+//         sortOption = { name: 1 };
+//         break;
+//       case "z-a":
+//         sortOption = { name: -1 };
+//         break;
+//       case "oldest":
+//         sortOption = { createdAt: 1 }; // Assumes you have a createdAt field
+//         break;
+//       case "latest":
+//       default:
+//         sortOption = { createdAt: -1 }; // Assumes you have a createdAt field
+//         break;
+//     }
+
+//     const [totalUsers, users] = await Promise.all([
+//       userModel.countDocuments({ isVerified: true }),
+//       userModel.find().sort(sortOption).skip(skip).limit(limit),
+//     ]);
+//     res.status(200).json({
+//       users,
+//       currentPage: page,
+//       totalPages: Math.ceil(totalUsers / limit),
+//       totalUsers,
+//     });
+//   } catch (error) {
+//     console.error("Error fetching users:", error);
+//     res.status(500).json({ message: "Internal Server Error!" });
+//   }
+// };
+
+
 const GetAll = async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
-    const sortBy = req.query.sort || "latest"; // Default to 'latest'
+    const sortBy = req.query.sort || "latest";
+    const search = req.query.search || '';
     const skip = (page - 1) * limit;
 
+    // Build sort options
     let sortOption = {};
     switch (sortBy) {
       case "a-z":
@@ -403,18 +449,33 @@ const GetAll = async (req, res) => {
         sortOption = { name: -1 };
         break;
       case "oldest":
-        sortOption = { createdAt: 1 }; // Assumes you have a createdAt field
+        sortOption = { createdAt: 1 };
         break;
       case "latest":
       default:
-        sortOption = { createdAt: -1 }; // Assumes you have a createdAt field
+        sortOption = { createdAt: -1 };
         break;
     }
 
+    // Build search filter (case-insensitive partial match)
+    let searchFilter = { isVerified: true };
+if (search.trim() !== '') {
+  const regex = new RegExp(search, 'i');
+
+  searchFilter.$or = [
+    { name: regex },
+    { email: regex },
+    { contactNumber: regex },
+ 
+  ];
+}
+
+
     const [totalUsers, users] = await Promise.all([
-      userModel.countDocuments({ isVerified: true }),
-      userModel.find().sort(sortOption).skip(skip).limit(limit),
+      userModel.countDocuments(searchFilter),
+      userModel.find(searchFilter).sort(sortOption).skip(skip).limit(limit),
     ]);
+
     res.status(200).json({
       users,
       currentPage: page,
